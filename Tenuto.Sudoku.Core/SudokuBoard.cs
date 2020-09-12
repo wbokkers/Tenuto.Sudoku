@@ -9,7 +9,8 @@ namespace Tenuto.Sudoku.Core
     /// </summary>
     public class SudokuBoard
     {
-        public int[,] Cells { get; } = new int[9, 9];
+        public int[,] Cells { get; } = new int[9,9];
+        
         public string SudokuNotation { get; internal set; }
 
         /// <summary>
@@ -39,6 +40,17 @@ namespace Tenuto.Sudoku.Core
                 }
 
             SudokuNotation = ToSudokuNotation(cells);
+        }
+
+        public SudokuBoard(SudokuBoard copy)
+        {
+            for (int r = 0; r < 9; r++)
+                for (int c = 0; c < 9; c++)
+                {
+                    Cells[r, c] = copy.Cells[r, c];
+                }
+
+            SudokuNotation = ToSudokuNotation(Cells);
         }
 
         public static string ToSudokuNotation(string[] sdnotPerLine)

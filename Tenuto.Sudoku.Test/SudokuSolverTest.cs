@@ -5,14 +5,14 @@ using Xunit;
 
 namespace Tenuto.Sudoku.Test
 {
-    public class SudokuFastSolverTest
+    public class SudokuSolverTest
     {
     
         [Fact]
         public void SudokuBoard_Solve_ClassicWithSolution()
         {
             // Arrange
-            var solver = new SudokuFastSolver();
+            var solver = new SudokuSolver();
             var initialBoard = new SudokuBoard(
                 "...84...9",
                 "..1.....5",
@@ -25,7 +25,7 @@ namespace Tenuto.Sudoku.Test
                 "3...84..."
             );
             
-            var solvedGrid= new SudokuBoard(
+            var solvedBoard= new SudokuBoard(
                 "632845179",
                 "471369285",
                 "895721463",
@@ -42,7 +42,41 @@ namespace Tenuto.Sudoku.Test
 
             // Assert
             Assert.Single(solutions);
-            Assert.Equal(solvedGrid, solutions.First());
+            Assert.Equal(solvedBoard, solutions.First());
+        }
+
+        [Fact]
+        public void SudokuBoard_Solve_RandomHardGame()
+        {
+            // Arrange
+            var game = SudokuGameFactory.Create(26, 2000);
+
+            var solver = new SudokuSolver();
+        
+            // Act
+            var solutions = solver.Solve(game.InitialBoard);
+
+            // Assert
+            Assert.Single(solutions);
+            Assert.Equal(game.Solution, solutions.First());
+            Assert.Equal(26, game.GivensCount);
+        }
+
+        [Fact]
+        public void SudokuBoard_Solve_RandomEasyGame()
+        {
+            // Arrange
+            var game = SudokuGameFactory.Create(60, 2000);
+
+            var solver = new SudokuSolver();
+
+            // Act
+            var solutions = solver.Solve(game.InitialBoard);
+
+            // Assert
+            Assert.Single(solutions);
+            Assert.Equal(game.Solution, solutions.First());
+            Assert.Equal(60, game.GivensCount);
         }
 
         //[Fact]

@@ -3,18 +3,17 @@
 namespace Tenuto.Sudoku.Core
 {
     /// <summary>
-    /// Sudoku Solver by Attractive Chaos
-    /// Improved algorithm of Guenter Stertenbrink's suexco.c
-    /// Translated from C to C# by Wim Bokkers
+    /// A very fast Sudoku solver by Attractive Chaos and Guenter Stertenbrink.
+    /// Translated from C to C# by Wim Bokkers.
     /// 
     /// For license and information about this solver, see:
     /// https://raw.githubusercontent.com/attractivechaos/plb/master/sudoku/sudoku_v1.c
     /// </summary>
-    public class SudokuFastSolver
+    public class SudokuSolver
     {
         private readonly Auxiliary _aux;
      
-        public SudokuFastSolver()
+        public SudokuSolver()
         {
             _aux = GenerateMatrixRepresentation();
         }
