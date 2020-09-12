@@ -4,38 +4,41 @@ using System.Text;
 
 namespace Tenuto.Sudoku.Core
 {
-    public class SudokuGrid
+    /// <summary>
+    /// A Sudoku board. This can be a board with initial values (aka 'givens') or a solved board.
+    /// </summary>
+    public class SudokuBoard
     {
-        public int[,] Grid { get; } = new int[9, 9];
+        public int[,] Cells { get; } = new int[9, 9];
         public string SudokuNotation { get; internal set; }
 
         /// <summary>
         /// Construct using string/dot notation (one single line)
         /// </summary>
-        public SudokuGrid(string sdnotation)
+        public SudokuBoard(string sdnotation)
         {
             SudokuNotation = sdnotation;
-            Grid = ToGrid(SudokuNotation);
+            Cells = ToCellValues(SudokuNotation);
         }
 
         /// <summary>
         /// Construct using string/dot notation, one line for each row
         /// </summary>
-        public SudokuGrid(params string[] sdnotPerLine)
+        public SudokuBoard(params string[] sdnotPerLine)
         {
             SudokuNotation = ToSudokuNotation(sdnotPerLine);
-            Grid = ToGrid(SudokuNotation);
+            Cells = ToCellValues(SudokuNotation);
         }
 
-        public SudokuGrid(int[,] grid)
+        public SudokuBoard(int[,] cells)
         {
             for (int r = 0; r < 9; r++)
                 for (int c = 0; c < 9; c++)
                 {
-                    Grid[r, c] = grid[r, c];
+                    Cells[r, c] = cells[r, c];
                 }
 
-            SudokuNotation = ToSudokuNotation(grid);
+            SudokuNotation = ToSudokuNotation(cells);
         }
 
         public static string ToSudokuNotation(string[] sdnotPerLine)
@@ -49,52 +52,39 @@ namespace Tenuto.Sudoku.Core
             return sb.ToString();
         }
 
-        public static string ToSudokuNotation(int[,] grid)
+        public static string ToSudokuNotation(int[,] cells)
         {
             var sb = new StringBuilder();
             for (int r = 0; r < 9; r++)
                 for (int c = 0; c < 9; c++)
                 {
-                    sb.Append((char)(grid[r, c] + '0'));
+                    sb.Append((char)(cells[r, c] + '0'));
                 }
 
             return sb.ToString();
         }
 
-        public static int[,] ToGrid(string sdnotation)
+        public static int[,] ToCellValues(string sdnotation)
         {
-            var grid = new int[9, 9];
+            var cells = new int[9, 9];
             var maxLenght = Math.Min(81, sdnotation.Length);
             for (int i = 0; i < maxLenght; i++)
             {
                 var row = i / 9;
                 var col = i % 9;
 
-                grid[row, col] = sdnotation[i] == '.' ? 0 : sdnotation[i] - '0';
+                cells[row, col] = sdnotation[i] == '.' ? 0 : sdnotation[i] - '0';
             }
-            return grid;
+            return cells;
         }
 
-        //private void PopulateGridFromStrings(string[] initialGrid)
-        //{
-        //    for (int row = 0; row < 9; row++)
-        //    {
-        //        string tileDefinition = initialGrid[row];
-
-        //        for (int column = 0; column < 9; column++)
-        //        {
-        //            _grid[row, column] = tileDefinition[column] == '.' ? 0 : (int)char.GetNumericValue(tileDefinition[column]);
-        //        }
-        //    }
-        //}
-
-        public static bool operator ==(SudokuGrid obj1, SudokuGrid obj2)
+        public static bool operator ==(SudokuBoard obj1, SudokuBoard obj2)
         {
             return obj1.SudokuNotation == obj2.SudokuNotation;
         }
 
         // this is second one '!='
-        public static bool operator !=(SudokuGrid obj1, SudokuGrid obj2)
+        public static bool operator !=(SudokuBoard obj1, SudokuBoard obj2)
         {
             return obj1.SudokuNotation != obj2.SudokuNotation;
         }
@@ -122,7 +112,7 @@ namespace Tenuto.Sudoku.Core
                     if ((c % 3) == 0 && c != 0)
                         writer.Write("| ");
 
-                    var ch = Grid[r, c] == 0 ? ". " : Grid[r, c].ToString() + " ";
+                    var ch = Cells[r, c] == 0 ? ". " : Cells[r, c].ToString() + " ";
                     writer.Write(ch);
                 }
                 writer.Write("\r\n ");
@@ -131,7 +121,7 @@ namespace Tenuto.Sudoku.Core
 
         public override bool Equals(object obj)
         {
-            if (obj is SudokuGrid grid)
+            if (obj is SudokuBoard grid)
             {
                 return string.Equals(SudokuNotation, grid.SudokuNotation);
             }

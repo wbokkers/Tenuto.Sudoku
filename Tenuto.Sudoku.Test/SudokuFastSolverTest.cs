@@ -13,7 +13,7 @@ namespace Tenuto.Sudoku.Test
         {
             // Arrange
             var solver = new SudokuFastSolver();
-            var initialBoard = new SudokuGrid(
+            var initialBoard = new SudokuBoard(
                 "...84...9",
                 "..1.....5",
                 "8...2146.",
@@ -25,7 +25,7 @@ namespace Tenuto.Sudoku.Test
                 "3...84..."
             );
             
-            var solvedGrid= new SudokuGrid(
+            var solvedGrid= new SudokuBoard(
                 "632845179",
                 "471369285",
                 "895721463",

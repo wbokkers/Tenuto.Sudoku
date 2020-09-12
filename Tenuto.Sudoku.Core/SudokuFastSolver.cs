@@ -22,18 +22,18 @@ namespace Tenuto.Sudoku.Core
         /// <summary>
         /// Solve a Sudoku with the specified initial state
         /// </summary>
-        public List<SudokuGrid> Solve(SudokuGrid initialGrid)
+        public List<SudokuBoard> Solve(SudokuBoard initialBoard)
         {
-            return Solve(initialGrid.SudokuNotation);
+            return Solve(initialBoard.SudokuNotation);
         }
 
         /// <summary>
         /// Solve a Sudoku with the specified initial state (using the standard dot/number representation)
         /// Example: "...84...9..1.....58...2146.7.8....9...........5....3.1.2491...79.....5..3...84..."
         /// </summary>
-        public List<SudokuGrid> Solve(string sdnot)
+        public List<SudokuBoard> Solve(string sdnot)
         {
-            var solutions = new List<SudokuGrid>();
+            var solutions = new List<SudokuBoard>();
             
             int i, j, c, r, r2, dir, cand,  min, hints = 0; // dir=1: forward; dir=-1: backtrack
             var sr = new sbyte[729];
@@ -103,7 +103,7 @@ namespace Tenuto.Sudoku.Core
                     sdnot_out[r / 9] = (char)(r % 9 + '1'); // print
                 }
 
-                var solution = new SudokuGrid(new string(sdnot_out));
+                var solution = new SudokuBoard(new string(sdnot_out));
 
                 solutions.Add(solution);
                 --i; dir = -1; // backtrack

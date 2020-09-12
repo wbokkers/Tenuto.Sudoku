@@ -69,7 +69,7 @@ namespace Tenuto.Sudoku.Core
             return false;
         }
 
-        public SudokuGrid MakeRandomPuzzle(int cellsLeft)
+        public SudokuBoard MakeRandomPuzzle(int cellsLeft)
         {
             Fill();
 
@@ -104,7 +104,7 @@ namespace Tenuto.Sudoku.Core
                 if(row == -1)
                 {
                     // no empty cell to fill
-                    return new SudokuGrid(_grid);
+                    return new SudokuBoard(_grid);
                 }
 
                 //  Remember its cell value in case we need to put it back  
@@ -115,7 +115,7 @@ namespace Tenuto.Sudoku.Core
                 //  Count the number of solutions that this grid has (using a backtracking approach implemented Solve())
                 //  If the number of solution is different from 1 then we need to cancel the change
                 //  by putting the value we took away back in the grid
-                if (solver.Solve(SudokuGrid.ToSudokuNotation(_grid)).Count != 1)
+                if (solver.Solve(SudokuBoard.ToSudokuNotation(_grid)).Count != 1)
                 {
                     _grid[row, col] = backup;
                     cellsFilled++;
@@ -131,7 +131,7 @@ namespace Tenuto.Sudoku.Core
             }
 
             Console.WriteLine($"Generated in {attempt} attempts, with {cellsFilled} cells left");
-            return new SudokuGrid(_grid);
+            return new SudokuBoard(_grid);
         }
 
         // Check if the grid is full
