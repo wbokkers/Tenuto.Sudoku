@@ -7,7 +7,7 @@ namespace Tenuto.Sudoku.Core
     // Improved by Wim Bokkers
     public class SudokuGameFactory
     {
-        private static int[,] _Cells = new int[9, 9];
+        private static readonly int[,] _Cells = new int[9, 9];
 
         /// <summary>
         /// Create a game with the specified number of given cells.
@@ -15,9 +15,6 @@ namespace Tenuto.Sudoku.Core
         /// You can increase the probability to get a low number of givens, by increasing the maximum number of attempts.
         /// The actual number of givens can be retrieved from the returned game object.
         /// </summary>
-        /// <param name="givensCount"></param>
-        /// <param name="maxAttempts"></param>
-        /// <returns></returns>
         public static SudokuGame Create(int givensCount, int maxAttempts=2000)
         {
             Reset();
@@ -86,7 +83,6 @@ namespace Tenuto.Sudoku.Core
             return new SudokuGame(new SudokuBoard(_Cells), finalBoard);
         }
 
-    
         private static bool Fill()
         {
             int row = 0;
