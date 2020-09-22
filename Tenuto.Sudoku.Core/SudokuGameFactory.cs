@@ -18,8 +18,8 @@ namespace Tenuto.Sudoku.Core
         {
             // Start with a random finished board
             // and use it as the initial board 
-            var finishedBoard = RandomFinishedBoard();
-            var initialBoard = new SudokuBoard(finishedBoard); // start with finished
+            var solution = RandomFinishedBoard();
+            var initialBoard = new SudokuBoard(solution); // start with finished
 
             var cells = initialBoard.Cells;
 
@@ -55,7 +55,7 @@ namespace Tenuto.Sudoku.Core
                 if (row == -1)
                 {
                     // no empty cell to fill
-                    return new SudokuGame(initialBoard, finishedBoard);
+                    return new SudokuGame(initialBoard, solution);
                 }
 
                 //  Remember its cell value in case we need to put it back  
@@ -82,7 +82,7 @@ namespace Tenuto.Sudoku.Core
             }
 
             Console.WriteLine($"Generated in {attempt} attempts, with {cellsFilled} cells left");
-            return new SudokuGame(initialBoard, finishedBoard);
+            return new SudokuGame(initialBoard, solution);
         }
 
         private static SudokuBoard RandomFinishedBoard()
