@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 
@@ -7,19 +8,18 @@ namespace Tenuto.Sudoku.Core
     /// <summary>
     /// A Sudoku board. This can be a board with initial values (aka 'givens') or a solved board.
     /// </summary>
-    public class SudokuBoard
+    public class SudokuBoard : IEquatable<SudokuBoard>
     {
         public int[,] Cells { get; } = new int[9,9];
-        
-        public string SudokuNotation { get; internal set; }
+
+        public string SudokuNotation => ToSudokuNotation(Cells);
 
         /// <summary>
         /// Construct using string/dot notation (one single line)
         /// </summary>
         public SudokuBoard(string sdnotation)
         {
-            SudokuNotation = sdnotation;
-            Cells = ToCellValues(SudokuNotation);
+            Cells = ToCellValues(sdnotation);
         }
 
         /// <summary>
@@ -27,8 +27,7 @@ namespace Tenuto.Sudoku.Core
         /// </summary>
         public SudokuBoard(params string[] sdnotPerLine)
         {
-            SudokuNotation = ToSudokuNotation(sdnotPerLine);
-            Cells = ToCellValues(SudokuNotation);
+            Cells = ToCellValues(ToSudokuNotation(sdnotPerLine));
         }
 
         public SudokuBoard(int[,] cells)
@@ -38,8 +37,6 @@ namespace Tenuto.Sudoku.Core
                 {
                     Cells[r, c] = cells[r, c];
                 }
-
-            SudokuNotation = ToSudokuNotation(cells);
         }
 
         public SudokuBoard(SudokuBoard copy)
@@ -49,8 +46,6 @@ namespace Tenuto.Sudoku.Core
                 {
                     Cells[r, c] = copy.Cells[r, c];
                 }
-
-            SudokuNotation = ToSudokuNotation(Cells);
         }
 
         public static string ToSudokuNotation(string[] sdnotPerLine)
@@ -92,13 +87,19 @@ namespace Tenuto.Sudoku.Core
 
         public static bool operator ==(SudokuBoard obj1, SudokuBoard obj2)
         {
-            return obj1.SudokuNotation == obj2.SudokuNotation;
+            if (object.ReferenceEquals(obj1, obj2))
+                return true;
+
+            return obj1.Equals(obj2);
         }
 
         // this is second one '!='
         public static bool operator !=(SudokuBoard obj1, SudokuBoard obj2)
         {
-            return obj1.SudokuNotation != obj2.SudokuNotation;
+            if (object.ReferenceEquals(obj1, obj2))
+                return false;
+
+            return !obj1.Equals(obj2);
         }
 
         public void WriteToConsole()
@@ -133,9 +134,9 @@ namespace Tenuto.Sudoku.Core
 
         public override bool Equals(object obj)
         {
-            if (obj is SudokuBoard grid)
+            if (obj is SudokuBoard other)
             {
-                return string.Equals(SudokuNotation, grid.SudokuNotation);
+                return Equals(other);
             }
             else
             {
@@ -151,6 +152,19 @@ namespace Tenuto.Sudoku.Core
         public override string ToString()
         {
             return SudokuNotation;
+        }
+
+        public bool Equals([AllowNull] SudokuBoard other)
+        {
+            if (other == null)
+                return false;
+
+            for (int r = 0; r < 9; r++)
+                for (int c = 0; c < 9; c++)
+                    if (Cells[r, c] != other.Cells[r, c])
+                        return false; // one difference found: not equal
+
+            return true;
         }
     }
 }

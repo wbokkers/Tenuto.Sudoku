@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Tenuto.Sudoku.Core
 {
@@ -12,9 +13,11 @@ namespace Tenuto.Sudoku.Core
     public class SudokuSolver
     {
         private readonly Auxiliary _aux;
+        private readonly int _maxSolutions;
      
-        public SudokuSolver()
+        public SudokuSolver(int maxSolutions = 1000)
         {
+            _maxSolutions = Math.Max(1, maxSolutions);
             _aux = GenerateMatrixRepresentation();
         }
 
@@ -105,6 +108,9 @@ namespace Tenuto.Sudoku.Core
                 var solution = new SudokuBoard(new string(sdnot_out));
 
                 solutions.Add(solution);
+                if (solutions.Count >= _maxSolutions)
+                    break;
+
                 --i; dir = -1; // backtrack
             }
             return solutions; // return the number of solutions

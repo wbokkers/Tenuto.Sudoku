@@ -72,7 +72,7 @@ namespace Tenuto.Sudoku.Test
         public void SudokuSolver_SolveRandomHardGame()
         {
             // Arrange
-            var game = SudokuGameFactory.Create(26, 2000);
+            var game = SudokuGameFactory.Create(22, 2000);
 
             var solver = new SudokuSolver();
 
@@ -81,8 +81,8 @@ namespace Tenuto.Sudoku.Test
 
             // Assert
             Assert.Single(solutions);
+            Assert.True(game.GivensCount >= 22);
             Assert.Equal(game.Solution, solutions.First());
-            Assert.Equal(26, game.GivensCount);
         }
 
         [Fact]
