@@ -10,7 +10,8 @@ namespace Tenuto.Asteroids.Actors
     {
         private Vector2 _velocity;
         private Vector2 _position;
-
+        private float _timeInGame;
+        private readonly bool _isLifeLeftShip;
         public Ship()
         {
             Reset();
@@ -20,15 +21,17 @@ namespace Tenuto.Asteroids.Actors
         {
             // This is used for the "lives" ships, just to display the number of lives left in the corner of the screen
             Reset();
-
+        
             // Sets position in the corner of the screen
-            _position.X = 30 + lifeNo * 30;
+            _position.X = 30 + lifeNo * 20;
             _position.Y = 40;
+            _isLifeLeftShip = true;
         }
 
         public Vector2 Position => _position;
 
         public bool IsExploded { get; private set; }
+        public bool IsGhost => _timeInGame <= GameConstants.ShipGhostTime;
         public float Rotation { get; private set; }
         public float ExplosionTime { get; private set; }
 
@@ -43,6 +46,9 @@ namespace Tenuto.Asteroids.Actors
 
         public void Advance(float elapsedTime)
         {
+            if (_timeInGame < 100)
+                _timeInGame += elapsedTime;
+
             // s = s0 + v.dt
 
             _position.X += elapsedTime * _velocity.X;
@@ -73,6 +79,8 @@ namespace Tenuto.Asteroids.Actors
             }
         }
 
+        public float Size => 8;
+
         public void Draw(CanvasDrawingSession ds)
         {
             if (!IsExploded)
@@ -84,23 +92,31 @@ namespace Tenuto.Asteroids.Actors
                 var sinmin120 = (float)Math.Sin(Rotation - 120 * Math.PI / 180);
                 var cosmin120 = (float)Math.Cos(Rotation - 120 * Math.PI / 180);
                 var points = new Vector2[3];
-                points[0] = new Vector2(_position.X + 40 * sinr, _position.Y - 40 * cosr);
-                points[1] = new Vector2(_position.X + 20 * sinmin120, _position.Y - 20 * cosmin120);
-                points[2] = new Vector2(_position.X + 20 * sin120, _position.Y - 20 * cos120);
+
+                var len1 = _isLifeLeftShip ? 20 : 30;
+                var len2 = _isLifeLeftShip ? 10 : 15;
+
+                points[0] = new Vector2(_position.X + len1 * sinr, _position.Y - len1 * cosr);
+                points[1] = new Vector2(_position.X + len2 * sinmin120, _position.Y - len2 * cosmin120);
+                points[2] = new Vector2(_position.X + len2 * sin120, _position.Y - len2 * cos120);
 
                 var geom = CanvasGeometry.CreatePolygon(ds, points);
-                ds.FillGeometry(geom, Colors.Red);
+                if (IsGhost && !_isLifeLeftShip)
+                    ds.DrawGeometry(geom, Colors.Green, 3,  new CanvasStrokeStyle { DashStyle = CanvasDashStyle.DashDot, MiterLimit = 1 });
+                else
+                    ds.FillGeometry(geom, Colors.Green);
             }
             else
             {
-                // If it's in explosion mode, we draw 9 red points moving away from the center, simulating an explosion
-                int angleStep = 360 / Asteroid.AsteroidCorners;
-                for (int i = 0; i < Asteroid.AsteroidCorners; i++)
+                // If it's in explosion mode, we draw 20 points moving away from the center, simulating an explosion
+                var noFragments = 20;
+                float angleStep = 360f / noFragments;
+                for (int i = 0; i < noFragments; i++)
                 {
-                    ds.FillCircle(
-                        _position.X + ExplosionTime * 120 * (float)Math.Sin(i * angleStep *Math.PI / 180),
-                        _position.Y - ExplosionTime * 120 * (float)Math.Cos(i * angleStep * Math.PI / 180),
-                        4, Colors.Yellow);
+                    ds.DrawCircle(
+                        _position.X + ExplosionTime * 100 * (float)Math.Sin(i * angleStep *Math.PI / 180),
+                        _position.Y - ExplosionTime * 100 * (float)Math.Cos(i * angleStep * Math.PI / 180),
+                       (GameConstants.ExplosionDuration-ExplosionTime)/GameConstants.ExplosionDuration * 8 , Colors.Yellow);
                  }
             }
         }
@@ -121,25 +137,25 @@ namespace Tenuto.Asteroids.Actors
             // we need to take rotation into account.
 
             // x-component of acceleration
-            _velocity.X += 300 * elapsedTime * (float)Math.Sin(Rotation);
-            if (_velocity.X > 150)
+            _velocity.X += 250 * elapsedTime * (float)Math.Sin(Rotation);
+            if (_velocity.X > 100)
             {
-                _velocity.X = 150;
+                _velocity.X = 100;
             }
-            else if (_velocity.X < -150)
+            else if (_velocity.X < -100)
             {
-                _velocity.X = -150;
+                _velocity.X = -100;
             }
 
             // y-component of acceleration
-            _velocity.Y -= 300 * elapsedTime * (float)Math.Cos(Rotation);
-            if (_velocity.Y > 150)
+            _velocity.Y -= 250 * elapsedTime * (float)Math.Cos(Rotation);
+            if (_velocity.Y > 100)
             {
-                _velocity.Y = 150;
+                _velocity.Y = 100;
             }
-            else if (_velocity.Y < -150)
+            else if (_velocity.Y < -100)
             {
-                _velocity.Y = -150;
+                _velocity.Y = -100;
             }
         }
 
@@ -156,6 +172,7 @@ namespace Tenuto.Asteroids.Actors
 
         public void Reset()
         {
+            _timeInGame = 0.0f;
             // Position in the center of the screen
             _position.X = GameConstants.DesignWidth / 2;
             _position.Y = GameConstants.DesignHeight / 2;

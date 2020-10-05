@@ -49,7 +49,7 @@ namespace Tenuto.Asteroids
             ds.DrawImage(_bgImage, 0, 0);
 
 
-            _engine.Advance(elapsedTime);
+            _engine.GameLogic(elapsedTime);
             _engine.Draw(ds);
 
 

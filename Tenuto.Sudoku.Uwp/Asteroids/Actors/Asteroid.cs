@@ -16,8 +16,8 @@ namespace Tenuto.Asteroids.Actors
         private const float AsteroidMaxRotation = 90f * (float)Math.PI / 180.0f;
         private const float AsteroidSizeVariation = 20;
         private const float AsteroidSpeed = 50;
-        public const float AsteroidSizeMultiplier = 20;
-        public const int AsteroidCorners = 9;
+        public const float AsteroidSizeMultiplier = 10;
+        public const int AsteroidCorners = 16;
 
 		private Vector2 _position;
         private Vector2 _velocity;
@@ -139,7 +139,7 @@ namespace Tenuto.Asteroids.Actors
                 }
 
                 var geom = CanvasGeometry.CreatePolygon(ds, points.ToArray());
-                ds.FillGeometry(geom, Colors.Blue);
+                ds.DrawGeometry(geom, Colors.SandyBrown,  4.0f);
             }
             else
             {
@@ -147,9 +147,9 @@ namespace Tenuto.Asteroids.Actors
                 float angleStep = 2.0f * (float)Math.PI / AsteroidCorners;
                 for (int i = 1; i < AsteroidCorners; i++)
                 {
-                    ds.FillCircle(_position.X + (ExplosionTime * (100 + 20 * _sizeVariation[i])) * (float)Math.Sin(i * angleStep),
+                    ds.DrawCircle(_position.X + (ExplosionTime * (100 + 20 * _sizeVariation[i])) * (float)Math.Sin(i * angleStep),
                                   _position.Y - (ExplosionTime * (100 + 20 * _sizeVariation[i])) * (float)Math.Cos(i * angleStep),
-                        4, Colors.Yellow);
+                         (GameConstants.ExplosionDuration - ExplosionTime) / GameConstants.ExplosionDuration * 8, Colors.LightYellow);
                 }
             }
         }

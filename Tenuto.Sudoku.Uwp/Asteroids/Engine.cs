@@ -1,40 +1,63 @@
 ﻿using Microsoft.Graphics.Canvas;
+using Microsoft.Graphics.Canvas.Text;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
 using Tenuto.Asteroids.Actors;
+using Windows.Foundation;
 using Windows.System;
+using Windows.UI;
+using Windows.UI.Text;
 
 namespace Tenuto.Asteroids
 {
     public class Engine
     {
-        private readonly Ship _ship;
+        private readonly Ship _ship = new Ship();
         private bool _isLeftPressed;
+        private bool _isRestartPressed;
         private bool _isRightPressed;
         private bool _isAccelerationPressed;
         private int _firePressed;
         private bool _gameOver;
         private bool _gameWon;
         private int _lives;
-        private Ship[] _lifeShips = new Ship[3];
-        private List<Projectile> _projectiles = new List<Projectile>();
-        private List<Asteroid> _asteroids = new List<Asteroid>();
+        private float _startingTime;
+        private readonly Ship[] _lifeShips = new Ship[GameConstants.ExtraLives];
+        private readonly List<Projectile> _projectiles = new List<Projectile>();
+        private readonly List<Asteroid> _asteroids = new List<Asteroid>();
+
+        //private readonly Stopwatch _stopwatch = new Stopwatch();
+        //private int _frameCount;
+        //private int _fps;
 
         public Engine()
         {
-            // Initilize the main ship
-            _ship = new Ship();
+            ResetGame();
+        }
 
-            // Initializes 6 big asteroids
-            for (int i = 0; i < 6; i++)
+
+        private void ResetGame()
+        {
+            //_stopwatch.Restart();
+            //_frameCount = 0;
+
+            // Initilize the main ship
+            _ship.Reset();
+
+            // Initializes 7 big asteroids
+            _asteroids.Clear();
+            for (int i = 0; i < 7; i++)
             {
                 _asteroids.Add(new Asteroid());
             }
 
+            _projectiles.Clear();
+
             // Initializes 3 ships representing lives left. 
             //These are purely for drawing the lives left on the screen, we don't actually control them or check for collisions
-            _lives = 3;
+            _lives = _lifeShips.Length;
             for (int i = 0; i < _lives; i++)
             {
                 var lifeShip = new Ship(i);
@@ -43,52 +66,41 @@ namespace Tenuto.Asteroids
 
             // Reset keys
             _firePressed = 0;
+            _isAccelerationPressed = false;
+            _isLeftPressed = false;
+            _isRightPressed = false;
+            _isRestartPressed = false;
+
+            _startingTime = 0.0f;
+            _gameOver = false;
+            _gameWon = false;
         }
 
-        internal void Advance(float elapsedTime)
+
+        internal void GameLogic(float elapsedTime)
         {
+            if ((_gameOver || _gameWon) && _isRestartPressed)
+            {
+                ResetGame();
+                return;
+            }
+
+            if (_startingTime < 100)
+                _startingTime += elapsedTime;
+
             ////////////////
             // Ship control
             ////////////////
-            if (!_ship.IsExploded)
-            {
-                if (_isLeftPressed)
-                {
-                    _ship.ApplyLeftRotation(elapsedTime);
-                }
-
-                if (_isRightPressed)
-                {
-                    _ship.ApplyRightRotation(elapsedTime);
-                }
-
-                if (_isAccelerationPressed)
-                {
-                    _ship.ApplyAcceleration(elapsedTime);
-                }
-
-                if (_firePressed == 1)
-                {
-                    if (_projectiles.Count < 20) // allow max 20 projectiles on the screen
-                    {
-                        // If we pressed fire, we create a projectile, 
-                        // starting from the position of the ship and going in the direction the ship is faced
-                        var projectile = new Projectile(_ship.Position, _ship.Rotation);
-                        _projectiles.Add(projectile);
-                    }
-
-                    _firePressed = 2; // do not keep firing when the key remains pressed 
-                }
-            }
+            ControlTheShip(elapsedTime);
 
 
             //////////
             // Ship  
             /////////
             _ship.Advance(elapsedTime);
-            if (_ship.IsExploded && _ship.ExplosionTime > 0.5)
+            if (_ship.IsExploded && _ship.ExplosionTime > GameConstants.ExplosionDuration)
             {
-                // If the ship is exploded and 0.5 seconds has passed, we reset it and decrease the lives.
+                // If the ship is exploded and some time has passed, we reset it and decrease the lives.
                 _ship.Reset();
                 _lives--;
                 if (_lives < 0)
@@ -118,11 +130,10 @@ namespace Tenuto.Asteroids
             {
                 // Move the asteroids
                 asteroid.Advance(elapsedTime);
-
             }
 
-            // Remove exploded asteroids from the list (0.5 s after explosion)
-            _asteroids.RemoveAll(a => a.Size == 0 && a.ExplosionTime > 0.5);
+            // Remove exploded asteroids from the list (some time after explosion)
+            _asteroids.RemoveAll(a => a.Size == 0 && a.ExplosionTime > GameConstants.ExplosionDuration);
 
             if (_asteroids.Count == 0)
             {
@@ -131,19 +142,24 @@ namespace Tenuto.Asteroids
                 _gameWon = true;
             }
 
-            ProjectileToAsteroidCollision();
+            ShipToAsteroidCollision();
 
+            ProjectileToAsteroidCollision();
+        }
+
+        private void ShipToAsteroidCollision()
+        {
             // Ship to asteroid collisions
             // If the ship is already exploded, it doesn't matter
-            if (!_ship.IsExploded)
+            if (!_ship.IsExploded && !_ship.IsGhost)
             {
                 // We go through all the steroids
                 foreach (var asteroid in _asteroids)
                 {
                     var distance = Math.Pow(asteroid.Position.X - _ship.Position.X, 2)
                                   + Math.Pow(asteroid.Position.Y - _ship.Position.Y, 2);
-                     // Asteroid's size + ship's size
-                    var size = Math.Pow(asteroid.Size * Asteroid.AsteroidSizeMultiplier + 5, 2);
+                    // Asteroid's size + ship's size
+                    var size = Math.Pow(asteroid.Size * Asteroid.AsteroidSizeMultiplier + 8, 2);
 
                     // If we have a collision
                     if (distance < size)
@@ -153,6 +169,40 @@ namespace Tenuto.Asteroids
 
                         break;
                     }
+                }
+            }
+        }
+
+        private void ControlTheShip(float elapsedTime)
+        {
+            if (!_ship.IsExploded)
+            {
+                if (_isLeftPressed)
+                {
+                    _ship.ApplyLeftRotation(elapsedTime);
+                }
+
+                if (_isRightPressed)
+                {
+                    _ship.ApplyRightRotation(elapsedTime);
+                }
+
+                if (_isAccelerationPressed)
+                {
+                    _ship.ApplyAcceleration(elapsedTime);
+                }
+
+                if (_firePressed == 1 && !_ship.IsGhost)
+                {
+                    if (_projectiles.Count < 20) // allow max 20 projectiles on the screen
+                    {
+                        // If we pressed fire, we create a projectile, 
+                        // starting from the position of the ship and going in the direction the ship is faced
+                        var projectile = new Projectile(_ship.Position, _ship.Rotation);
+                        _projectiles.Add(projectile);
+                    }
+
+                    _firePressed = 2; // do not keep firing when the key remains pressed 
                 }
             }
         }
@@ -237,6 +287,8 @@ namespace Tenuto.Asteroids
 
         internal void Draw(CanvasDrawingSession ds)
         {
+           // DrawFps(ds);
+
             foreach (var projectile in _projectiles)
             {
                 projectile.Draw(ds);
@@ -259,16 +311,47 @@ namespace Tenuto.Asteroids
 
             if (_gameOver)
             {
+                var rect = new Rect(0, 0, GameConstants.DesignWidth, GameConstants.DesignHeight);
+                var textFormat = new CanvasTextFormat
+                {
+                    FontFamily = "Verdana",
+                    FontWeight = FontWeights.Normal,
+                    FontStyle = FontStyle.Normal,
+                    FontStretch = FontStretch.Normal,
+                    HorizontalAlignment=CanvasHorizontalAlignment.Center,
+                    VerticalAlignment=CanvasVerticalAlignment.Center,
+                    FontSize = 60
+                };
+
                 if (_gameWon)
                 {
-                    // TODO
+                    ds.DrawText("You Win!", rect, Colors.White, textFormat);
                 }
                 else
                 {
-                    // TODO
+                    ds.DrawText("Game Over!",  rect, Colors.White, textFormat);
                 }
+
+                rect.Height -= 20;
+                textFormat.FontSize = 20;
+                textFormat.VerticalAlignment = CanvasVerticalAlignment.Bottom;
+                ds.DrawText("Press S for New Game", rect, Colors.Yellow, textFormat);
             }
         }
+
+        //private void DrawFps(CanvasDrawingSession ds)
+        //{
+        //    _frameCount++;
+        //    var ms = _stopwatch.ElapsedMilliseconds;
+        //    if(ms >= 1000)
+        //    {
+        //        _fps = _frameCount;
+        //        _stopwatch.Restart();
+        //        _frameCount = 0;
+        //    }
+
+        //    ds.DrawText(_fps + " FPS", 20, 20, Colors.White);
+        //}
 
         internal void KeyDown(VirtualKey key)
         {
@@ -283,7 +366,11 @@ namespace Tenuto.Asteroids
         private void SetKeyPressed(VirtualKey key, bool isPressed)
         {
             if (_gameOver || _gameWon)
+            {
+                if (key == VirtualKey.S)
+                    _isRestartPressed = isPressed;
                 return;
+            }
 
             switch (key)
             {
