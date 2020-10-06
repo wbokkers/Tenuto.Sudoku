@@ -25,8 +25,6 @@ namespace Tenuto.Asteroids.Actors
         private float _rotationSpeed;
         private readonly float[] _sizeVariation = new float[AsteroidCorners];
 
-
-
         public Asteroid()
         {
             // Initialize position randomly on the screen

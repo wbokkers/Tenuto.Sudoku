@@ -1,10 +1,6 @@
 ﻿using Microsoft.Graphics.Canvas;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.UI;
 
 namespace Tenuto.Asteroids.Actors
@@ -14,12 +10,12 @@ namespace Tenuto.Asteroids.Actors
         private const float ProjectileSpeed = 400;
         private Vector2 _position;
         private Vector2 _velocity;
-      
+
         public Projectile(Vector2 position, float rotation)
         {
             _position = position;
 
-            _velocity.X = (float)Math.Sin(rotation) *  ProjectileSpeed;
+            _velocity.X = (float)Math.Sin(rotation) * ProjectileSpeed;
             _velocity.Y = -(float)Math.Cos(rotation) * ProjectileSpeed;
         }
 
