@@ -37,7 +37,7 @@ namespace Tenuto.Asteroids.Actors
 
         public void Draw(CanvasDrawingSession ds)
         {
-            ds.FillCircle(_position.X, _position.Y, 5, Colors.Red);
+            ds.FillCircle(_position.X, _position.Y, 3, Colors.Red);
         }
     }
 }

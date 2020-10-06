@@ -59,7 +59,7 @@ namespace Tenuto.Asteroids
 
         private async void CreateResources(CanvasAnimatedControl sender, CanvasCreateResourcesEventArgs args)
         {
-            _bgImage = await CanvasBitmap.LoadAsync(sender, @"./Asteroids/background-space.jpg");
+            _bgImage = await CanvasBitmap.LoadAsync(sender, @"./Asteroids/processor.jpg");
             _resourcesCreated = true;
         }
 

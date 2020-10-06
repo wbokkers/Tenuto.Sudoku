@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
 using Tenuto.Asteroids.Actors;
+using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.System;
 using Windows.UI;
@@ -14,7 +15,7 @@ namespace Tenuto.Asteroids
 {
     public class Engine
     {
-        private readonly Ship _ship = new Ship();
+        private readonly Syringe _syringe = new Syringe();
         private bool _isLeftPressed;
         private bool _isRestartPressed;
         private bool _isRightPressed;
@@ -24,9 +25,9 @@ namespace Tenuto.Asteroids
         private bool _gameWon;
         private int _lives;
         private float _startingTime;
-        private readonly Ship[] _lifeShips = new Ship[GameConstants.ExtraLives];
+        private readonly Syringe[] _lifeSyringes = new Syringe[GameConstants.ExtraLives];
         private readonly List<Projectile> _projectiles = new List<Projectile>();
-        private readonly List<Asteroid> _asteroids = new List<Asteroid>();
+        private readonly List<Coronaid> _asteroids = new List<Coronaid>();
 
         //private readonly Stopwatch _stopwatch = new Stopwatch();
         //private int _frameCount;
@@ -44,24 +45,24 @@ namespace Tenuto.Asteroids
             //_frameCount = 0;
 
             // Initilize the main ship
-            _ship.Reset();
+            _syringe.Reset();
 
             // Initializes 7 big asteroids
             _asteroids.Clear();
             for (int i = 0; i < 7; i++)
             {
-                _asteroids.Add(new Asteroid());
+                _asteroids.Add(new Coronaid());
             }
 
             _projectiles.Clear();
 
             // Initializes 3 ships representing lives left. 
             //These are purely for drawing the lives left on the screen, we don't actually control them or check for collisions
-            _lives = _lifeShips.Length;
+            _lives = _lifeSyringes.Length;
             for (int i = 0; i < _lives; i++)
             {
-                var lifeShip = new Ship(i);
-                _lifeShips[i] = lifeShip;
+                var lifeSyringe = new Syringe(i);
+                _lifeSyringes[i] = lifeSyringe;
             }
 
             // Reset keys
@@ -97,11 +98,11 @@ namespace Tenuto.Asteroids
             //////////
             // Ship  
             /////////
-            _ship.Advance(elapsedTime);
-            if (_ship.IsExploded && _ship.ExplosionTime > GameConstants.ExplosionDuration)
+            _syringe.Advance(elapsedTime);
+            if (_syringe.IsExploded && _syringe.ExplosionTime > GameConstants.ExplosionDuration)
             {
                 // If the ship is exploded and some time has passed, we reset it and decrease the lives.
-                _ship.Reset();
+                _syringe.Reset();
                 _lives--;
                 if (_lives < 0)
                 {
@@ -151,21 +152,21 @@ namespace Tenuto.Asteroids
         {
             // Ship to asteroid collisions
             // If the ship is already exploded, it doesn't matter
-            if (!_ship.IsExploded && !_ship.IsGhost)
+            if (!_syringe.IsExploded && !_syringe.IsGhost)
             {
                 // We go through all the steroids
                 foreach (var asteroid in _asteroids)
                 {
-                    var distance = Math.Pow(asteroid.Position.X - _ship.Position.X, 2)
-                                  + Math.Pow(asteroid.Position.Y - _ship.Position.Y, 2);
+                    var distance = Math.Pow(asteroid.Position.X - _syringe.Position.X, 2)
+                                  + Math.Pow(asteroid.Position.Y - _syringe.Position.Y, 2);
                     // Asteroid's size + ship's size
-                    var size = Math.Pow(asteroid.Size * Asteroid.AsteroidSizeMultiplier + 8, 2);
+                    var size = Math.Pow(asteroid.Size * Coronaid.CoronaOuterSizeMultiplier + _syringe.Size, 2);
 
                     // If we have a collision
                     if (distance < size)
                     {
                         // Ship explosion
-                        _ship.Explode();
+                        _syringe.Explode();
 
                         break;
                     }
@@ -175,30 +176,31 @@ namespace Tenuto.Asteroids
 
         private void ControlTheShip(float elapsedTime)
         {
-            if (!_ship.IsExploded)
+            if (!_syringe.IsExploded)
             {
                 if (_isLeftPressed)
                 {
-                    _ship.ApplyLeftRotation(elapsedTime);
+                    _syringe.ApplyLeftRotation(elapsedTime);
                 }
 
                 if (_isRightPressed)
                 {
-                    _ship.ApplyRightRotation(elapsedTime);
+                    _syringe.ApplyRightRotation(elapsedTime);
                 }
 
                 if (_isAccelerationPressed)
                 {
-                    _ship.ApplyAcceleration(elapsedTime);
+                    _syringe.ApplyAcceleration(elapsedTime);
                 }
 
-                if (_firePressed == 1 && !_ship.IsGhost)
+                if (_firePressed == 1 && !_syringe.IsGhost)
                 {
+                    var top = _syringe.NeedleTop;
                     if (_projectiles.Count < 20) // allow max 20 projectiles on the screen
                     {
                         // If we pressed fire, we create a projectile, 
                         // starting from the position of the ship and going in the direction the ship is faced
-                        var projectile = new Projectile(_ship.Position, _ship.Rotation);
+                        var projectile = new Projectile(top, _syringe.Rotation);
                         _projectiles.Add(projectile);
                     }
 
@@ -212,7 +214,7 @@ namespace Tenuto.Asteroids
             // Projectile to asteroid collisions
             bool foundCollision = false;
             Projectile hitProjectile = null;
-            Asteroid hitAsteroid = null;
+            Coronaid hitAsteroid = null;
             // We go through each asteroid and projectile to check for collisions
             foreach (var asteroid in _asteroids)
             {
@@ -228,7 +230,7 @@ namespace Tenuto.Asteroids
                     double distance = Math.Pow(asteroid.Position.X - projectile.Position.X, 2)
                                     + Math.Pow(asteroid.Position.Y - projectile.Position.Y, 2);
                     // Size of the asteroid
-                    double size = Math.Pow(asteroid.Size * Asteroid.AsteroidSizeMultiplier, 2) * 1.2;
+                    double size = Math.Pow(asteroid.Size * Coronaid.CoronaOuterSizeMultiplier, 2);
 
                     if (distance < size)
                     { // We have a collision
@@ -270,13 +272,13 @@ namespace Tenuto.Asteroids
                     newSpeed1.X = cSpeed.Y * 1.5f;
                     newSpeed1.Y = cSpeed.X * 1.5f;
 
-                    var newAsteroid1 = new Asteroid(hitAsteroid.Position, hitAsteroid.Size / 2, newSpeed1);
+                    var newAsteroid1 = new Coronaid(hitAsteroid.Position, hitAsteroid.Size / 2, newSpeed1);
 
                     // New asteroid 2
                     Vector2 newSpeed2;
                     newSpeed2.X = -cSpeed.Y * 1.5f;
                     newSpeed2.Y = -cSpeed.X * 1.5f;
-                    var newAsteroid2 = new Asteroid(hitAsteroid.Position, hitAsteroid.Size / 2, newSpeed2);
+                    var newAsteroid2 = new Coronaid(hitAsteroid.Position, hitAsteroid.Size / 2, newSpeed2);
 
                     _asteroids.Remove(hitAsteroid);
                     _asteroids.Add(newAsteroid1);
@@ -296,7 +298,13 @@ namespace Tenuto.Asteroids
 
             if (!_gameOver || _gameWon)
             {
-                _ship.Draw(ds);
+                _syringe.Draw(ds);
+                if (_syringe.IsGhost)
+                {
+                    var format = BigTextFormat();
+                    format.FontSize = 20;
+                    ds.DrawText("Get Ready!", FullWindowRect, Colors.White, format);
+                }
             }
 
             foreach (var asteroid in _asteroids)
@@ -306,22 +314,14 @@ namespace Tenuto.Asteroids
 
             for (int i = 0; i < _lives; i++)
             {
-                _lifeShips[i].Draw(ds);
+                _lifeSyringes[i].Draw(ds);
             }
 
             if (_gameOver)
             {
-                var rect = new Rect(0, 0, GameConstants.DesignWidth, GameConstants.DesignHeight);
-                var textFormat = new CanvasTextFormat
-                {
-                    FontFamily = "Verdana",
-                    FontWeight = FontWeights.Normal,
-                    FontStyle = FontStyle.Normal,
-                    FontStretch = FontStretch.Normal,
-                    HorizontalAlignment=CanvasHorizontalAlignment.Center,
-                    VerticalAlignment=CanvasVerticalAlignment.Center,
-                    FontSize = 60
-                };
+                var rect = FullWindowRect;
+                var textFormat = BigTextFormat();
+                    
 
                 if (_gameWon)
                 {
@@ -339,6 +339,20 @@ namespace Tenuto.Asteroids
             }
         }
 
+        private Rect FullWindowRect => new Rect(0, 0, GameConstants.DesignWidth, GameConstants.DesignHeight);
+        private CanvasTextFormat BigTextFormat()
+        {
+            return new CanvasTextFormat
+            {
+                FontFamily = "Verdana",
+                FontWeight = FontWeights.Normal,
+                FontStyle = FontStyle.Normal,
+                FontStretch = FontStretch.Normal,
+                HorizontalAlignment = CanvasHorizontalAlignment.Center,
+                VerticalAlignment = CanvasVerticalAlignment.Center,
+                FontSize = 60
+            };
+        }
         //private void DrawFps(CanvasDrawingSession ds)
         //{
         //    _frameCount++;

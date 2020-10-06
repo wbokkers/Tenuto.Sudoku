@@ -124,14 +124,14 @@
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Asteroids\Actors\Asteroid.cs" />
+    <Compile Include="Asteroids\Actors\Coronaid.cs" />
     <Compile Include="Asteroids\Actors\Projectile.cs" />
     <Compile Include="Asteroids\AsteroidsGame.xaml.cs">
       <DependentUpon>AsteroidsGame.xaml</DependentUpon>
     </Compile>
     <Compile Include="Asteroids\Engine.cs" />
     <Compile Include="Asteroids\GameConstants.cs" />
-    <Compile Include="Asteroids\Actors\Ship.cs" />
+    <Compile Include="Asteroids\Actors\Syringe.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
@@ -147,6 +147,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Asteroids\background-space.jpg" />
+    <Content Include="Asteroids\processor.jpg" />
     <Content Include="Properties\Default.rd.xml" />
     <Content Include="Assets\LockScreenLogo.scale-200.png" />
     <Content Include="Assets\SplashScreen.scale-200.png" />
